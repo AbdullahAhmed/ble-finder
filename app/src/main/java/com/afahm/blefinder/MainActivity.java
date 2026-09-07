@@ -17,6 +17,8 @@ import java.util.*;
 
 /** Choose a BLE device, then follow its live signal. */
 public final class MainActivity extends Activity implements BleFinderClient.Listener {
+  private static final int REQUEST_ENABLE_BLUETOOTH = 702;
+  private final BluetoothEnablePrompt bluetoothPrompt = new BluetoothEnablePrompt();
   private static final int BG = 0xff0b1619, PANEL = 0xff152529, LINE = 0xff2b4044;
   private static final int INK = 0xfff0f4eb,
       MUTED = 0xff9db2b4,
@@ -50,7 +52,8 @@ public final class MainActivity extends Activity implements BleFinderClient.List
           int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
           if (state == BluetoothAdapter.STATE_OFF) {
             client.stop();
-            onStatus("Bluetooth is off. Turn it on to continue.");
+            resetSignal();
+            begin(false);
           } else if (state == BluetoothAdapter.STATE_ON) begin(false);
         }
       };
@@ -58,6 +61,10 @@ public final class MainActivity extends Activity implements BleFinderClient.List
   @Override
   public void onCreate(Bundle saved) {
     super.onCreate(saved);
+    if (saved != null) {
+      bluetoothPrompt.requested = saved.getBoolean("bluetooth_requested");
+      bluetoothPrompt.pending = saved.getBoolean("bluetooth_pending");
+    }
     prefs = getSharedPreferences("finder_preferences", MODE_PRIVATE);
     sound = prefs.getBoolean("sound", true);
     haptics = prefs.getBoolean("haptics", false);
@@ -123,6 +130,8 @@ public final class MainActivity extends Activity implements BleFinderClient.List
 
   @Override
   protected void onSaveInstanceState(Bundle state) {
+    state.putBoolean("bluetooth_requested", bluetoothPrompt.requested);
+    state.putBoolean("bluetooth_pending", bluetoothPrompt.pending);
     if (target != null) {
       state.putString("address", target.address);
       state.putString("name", target.name);
@@ -491,15 +500,26 @@ public final class MainActivity extends Activity implements BleFinderClient.List
       return;
     }
     if (!adapter.isEnabled()) {
-      onStatus("Bluetooth is off. Tap Refresh to turn it on.");
-      if (interactive)
+      onStatus("Bluetooth is off. Tap here to turn it on.");
+      status.setOnClickListener(v -> begin(true));
+      if (adapter.getState() == BluetoothAdapter.STATE_TURNING_ON) {
+        onStatus("Turning on Bluetooth…");
+        return;
+      }
+      if (bluetoothPrompt.request(interactive))
         try {
-          startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+          startActivityForResult(
+              new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQUEST_ENABLE_BLUETOOTH);
         } catch (SecurityException e) {
+          bluetoothPrompt.finished();
           onStatus("Allow Nearby Devices permission in Android settings.");
+        } catch (ActivityNotFoundException e) {
+          bluetoothPrompt.finished();
+          onStatus("Turn on Bluetooth in your phone's settings, then return here.");
         }
       return;
     }
+    bluetoothPrompt.enabled();
     LocationManager location = getSystemService(LocationManager.class);
     boolean locationOn =
         Build.VERSION.SDK_INT >= 28
@@ -516,6 +536,15 @@ public final class MainActivity extends Activity implements BleFinderClient.List
       sessionAt = SystemClock.elapsedRealtime();
       client.locate(target);
     }
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != REQUEST_ENABLE_BLUETOOTH) return;
+    bluetoothPrompt.finished();
+    // onResume normally starts scanning; handle devices delivering the result after resume too.
+    if (resumed) begin(false);
   }
 
   @Override

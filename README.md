@@ -16,7 +16,7 @@ Compact-layout screenshots from the Android emulator, using simulated devices an
 ## How to use it
 
 1. Install the APK on a phone running **Android 6.0 or later** with Bluetooth LE.
-2. Open BLE Finder and allow Nearby Devices and precise Location when requested. Keep Bluetooth and Location enabled.
+2. Open BLE Finder and allow Nearby Devices and precise Location when requested. If Bluetooth is off, accept the Android prompt to turn it on; scanning resumes automatically. If you decline, tap the status message or Refresh to retry. Keep Location enabled.
 3. Pick your device from the list. Search by name or Bluetooth address if there are many devices nearby. Your most recent device stays available for next time.
 4. Walk slowly, holding the phone the same way. Pause a few seconds in each spot and follow the faster clicks and stronger signal.
 5. Tap **Found it** to stop. The phone’s volume buttons adjust the click volume.
