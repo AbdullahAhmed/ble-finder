@@ -158,6 +158,9 @@ public final class MainActivity extends Activity implements BleFinderClient.List
   }
 
   private void buildPicker() {
+    boolean compact =
+        getResources().getConfiguration().screenHeightDp < 650
+            || getResources().getConfiguration().fontScale > 1.25f;
     LinearLayout header = row();
     TextView brand = label("BLE FINDER", 14, MINT);
     brand.setLetterSpacing(.12f);
@@ -168,10 +171,11 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     help.setOnClickListener(v -> showHelp());
     header.addView(help, lp(dp(48), dp(48)));
     root.addView(header);
-    TextView title = label("Find your\nmissing thing.", 38, INK);
+    TextView title =
+        label(compact ? "Find a device." : "Find your\nmissing thing.", compact ? 28 : 38, INK);
     bold(title);
     title.setLineSpacing(0, 1.02f);
-    root.addView(title, margins(-1, -2, 0, 16, 0, 8));
+    root.addView(title, margins(-1, -2, 0, compact ? 6 : 16, 0, 8));
     root.addView(label("Pick a device. Follow the clicks.", 17, MUTED));
     search = new EditText(this);
     search.setSingleLine(true);
@@ -181,7 +185,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     search.setHint("Search name or address");
     search.setPadding(dp(18), 0, dp(16), 0);
     search.setBackground(shape(PANEL, 18, LINE));
-    root.addView(search, margins(-1, dp(56), 0, 24, 0, 18));
+    root.addView(search, margins(-1, dp(56), 0, compact ? 12 : 24, 0, compact ? 6 : 18));
     search.addTextChangedListener(
         new TextWatcher() {
           public void beforeTextChanged(CharSequence s, int a, int c, int f) {}
@@ -199,7 +203,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     scanRow.addView(count, new LinearLayout.LayoutParams(0, dp(48), 1));
     scanButton = button("Refresh", false);
     scanButton.setOnClickListener(v -> begin(true));
-    scanRow.addView(scanButton, lp(dp(105), dp(48)));
+    scanRow.addView(scanButton, lp(dp(112), dp(48)));
     root.addView(scanRow);
     status = label(statusMessage, 13, MUTED);
     root.addView(status, margins(-1, -2, 0, 0, 0, 10));
@@ -797,7 +801,11 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     b.setTextSize(16);
     bold(b);
     b.setTextColor(primary ? BG : INK);
-    b.setBackground(shape(primary ? MINT : PANEL, 18, primary ? 0 : LINE));
+    b.setBackground(
+        new android.graphics.drawable.RippleDrawable(
+            android.content.res.ColorStateList.valueOf(0x339db2b4),
+            shape(primary ? MINT : PANEL, 18, primary ? 0 : LINE),
+            null));
     b.setPadding(dp(8), 0, dp(8), 0);
     b.setMinWidth(0);
     b.setMinimumWidth(0);

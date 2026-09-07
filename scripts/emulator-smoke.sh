@@ -14,3 +14,5 @@ adb shell wm dismiss-keyguard
 output=$(adb shell am instrument -w com.afahm.blefinder.test/com.afahm.blefinder.FinderSmokeTest)
 printf '%s\n' "$output"
 grep -q BLE_FINDER_SMOKE_PASS <<< "$output"
+mkdir -p screenshots
+adb pull /sdcard/Android/data/com.afahm.blefinder/files/. screenshots/

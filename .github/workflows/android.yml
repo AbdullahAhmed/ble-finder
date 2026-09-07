@@ -50,3 +50,8 @@ jobs:
           target: default
           disable-animations: true
           script: bash scripts/emulator-smoke.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: screens-android-${{ matrix.api }}
+          path: screenshots/

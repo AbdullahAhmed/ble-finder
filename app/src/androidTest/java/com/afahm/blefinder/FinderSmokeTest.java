@@ -39,7 +39,7 @@ public final class FinderSmokeTest extends Instrumentation {
               .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       activity = (MainActivity) startActivitySync(intent);
       waitForIdleSync();
-      assertText("Find your\nmissing thing.");
+      assertText("Pick a device. Follow the clicks.");
       BleFinderClient.Device beacon =
           new BleFinderClient.Device("02:00:00:00:00:01", "Test beacon", false);
       beacon.rssi = -75;
@@ -50,6 +50,7 @@ public final class FinderSmokeTest extends Instrumentation {
       waitForIdleSync();
       assertText("Test beacon");
       assertText("Unnamed device");
+      screenshot("picker");
       runOnMainSync(() -> ((EditText) findType(root(), EditText.class)).setText("00:00:02"));
       runOnMainSync(
           () -> {
@@ -76,6 +77,7 @@ public final class FinderSmokeTest extends Instrumentation {
       SystemClock.sleep(30);
       runOnMainSync(() -> activity.onSignal(-45, "Connected", SystemClock.elapsedRealtime()));
       assertText("-45"); // Switching sources resets smoothing rather than mixing unlike signals.
+      screenshot("locator");
       SystemClock.sleep(3200);
       waitForIdleSync();
       assertText("—");
@@ -84,7 +86,7 @@ public final class FinderSmokeTest extends Instrumentation {
           () -> activity.onSignal(-80, "Connected", SystemClock.elapsedRealtime() - 10000));
       assertText("—"); // Delayed scan batches cannot revive a stale signal.
       runOnMainSync(() -> activity.onBackPressed());
-      assertText("Find your\nmissing thing.");
+      assertText("Pick a device. Follow the clicks.");
       result.putString(
           "stream",
           "\n"
@@ -116,6 +118,20 @@ public final class FinderSmokeTest extends Instrumentation {
 
   private View root() {
     return activity.getWindow().getDecorView();
+  }
+
+  private void screenshot(String name) {
+    waitForIdleSync();
+    android.graphics.Bitmap bitmap = getUiAutomation().takeScreenshot();
+    if (bitmap == null) return;
+    java.io.File directory = getTargetContext().getExternalFilesDir(null);
+    try (java.io.FileOutputStream output =
+        new java.io.FileOutputStream(new java.io.File(directory, name + ".png"))) {
+      bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output);
+    } catch (java.io.IOException error) {
+      throw new AssertionError(error);
+    }
+    bitmap.recycle();
   }
 
   private void assertText(String text) {
