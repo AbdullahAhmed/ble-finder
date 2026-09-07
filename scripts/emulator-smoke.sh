@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'code=$?; if [ "$code" -ne 0 ]; then adb logcat -d -s AndroidRuntime:E; fi' EXIT
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell pm grant com.afahm.blefinder android.permission.ACCESS_COARSE_LOCATION

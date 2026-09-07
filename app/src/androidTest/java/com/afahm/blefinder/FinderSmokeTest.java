@@ -45,11 +45,11 @@ public final class FinderSmokeTest extends Instrumentation {
       beacon.rssi = -75;
       beacon.seen = SystemClock.elapsedRealtime();
       BleFinderClient.Device unnamed = new BleFinderClient.Device("02:00:00:00:00:02", null, false);
-      runOnMainSync(() -> activity.onDevices(new ArrayList<>(Arrays.asList(beacon, unnamed))));
+      onUi(() -> activity.onDevices(new ArrayList<>(Arrays.asList(beacon, unnamed))));
       SystemClock.sleep(1200);
       waitForIdleSync();
       assertText("Test beacon");
-      runOnMainSync(
+      onUi(
           () -> {
             View row = (View) findText(root(), "Test beacon").getParent().getParent();
             android.graphics.Rect visible = new android.graphics.Rect();
@@ -60,16 +60,16 @@ public final class FinderSmokeTest extends Instrumentation {
           });
       assertText("Unnamed device");
       screenshot("picker");
-      runOnMainSync(() -> ((EditText) findType(root(), EditText.class)).setText("00:00:02"));
-      runOnMainSync(
+      onUi(() -> ((EditText) findType(root(), EditText.class)).setText("00:00:02"));
+      onUi(
           () -> {
             View named = findText(root(), "Test beacon");
             if (named != null && named.isShown())
               throw new AssertionError("Search did not filter named device");
           });
       assertText("Unnamed device");
-      runOnMainSync(() -> ((EditText) findType(root(), EditText.class)).setText(""));
-      runOnMainSync(
+      onUi(() -> ((EditText) findType(root(), EditText.class)).setText(""));
+      onUi(
           () -> {
             View row = findText(root(), "Test beacon");
             while (row != null && !row.isClickable()) row = (View) row.getParent();
@@ -78,23 +78,22 @@ public final class FinderSmokeTest extends Instrumentation {
           });
       assertText("Follow the signal");
       assertText("Sound off");
-      runOnMainSync(() -> activity.onSignal(-70, "Broadcast", SystemClock.elapsedRealtime()));
+      onUi(() -> activity.onSignal(-70, "Broadcast", SystemClock.elapsedRealtime()));
       assertText("-70");
       assertText("●  Live signal");
-      runOnMainSync(() -> activity.onSignal(127, "Broadcast", SystemClock.elapsedRealtime() + 1));
+      onUi(() -> activity.onSignal(127, "Broadcast", SystemClock.elapsedRealtime() + 1));
       assertText("-70");
       SystemClock.sleep(30);
-      runOnMainSync(() -> activity.onSignal(-45, "Connected", SystemClock.elapsedRealtime()));
+      onUi(() -> activity.onSignal(-45, "Connected", SystemClock.elapsedRealtime()));
       assertText("-45"); // Switching sources resets smoothing rather than mixing unlike signals.
       screenshot("locator");
       SystemClock.sleep(3200);
       waitForIdleSync();
       assertText("—");
       assertText("Waiting for signal");
-      runOnMainSync(
-          () -> activity.onSignal(-80, "Connected", SystemClock.elapsedRealtime() - 10000));
+      onUi(() -> activity.onSignal(-80, "Connected", SystemClock.elapsedRealtime() - 10000));
       assertText("—"); // Delayed scan batches cannot revive a stale signal.
-      runOnMainSync(() -> activity.onBackPressed());
+      onUi(() -> activity.onBackPressed());
       assertText("BLE FINDER");
       result.putString(
           "stream",
@@ -105,7 +104,7 @@ public final class FinderSmokeTest extends Instrumentation {
       result.putString(
           "stream", "\nBLE_FINDER_SMOKE_FAIL: " + android.util.Log.getStackTraceString(error));
     } finally {
-      if (activity != null) runOnMainSync(() -> activity.finish());
+      if (activity != null) onUi(() -> activity.finish());
       SharedPreferences.Editor editor = prefs.edit().clear();
       for (Map.Entry<String, ?> entry : original.entrySet()) {
         Object v = entry.getValue();
@@ -129,8 +128,23 @@ public final class FinderSmokeTest extends Instrumentation {
     return activity.getWindow().getDecorView();
   }
 
+  private void onUi(Runnable operation) {
+    java.util.concurrent.atomic.AtomicReference<Throwable> failure =
+        new java.util.concurrent.atomic.AtomicReference<>();
+    runOnMainSync(
+        () -> {
+          try {
+            operation.run();
+          } catch (Throwable error) {
+            failure.set(error);
+          }
+        });
+    if (failure.get() != null) throw new AssertionError(failure.get());
+  }
+
   private void screenshot(String name) {
     waitForIdleSync();
+    SystemClock.sleep(150); // Allow the next display frame to include the most recent reading.
     android.graphics.Bitmap bitmap = getUiAutomation().takeScreenshot();
     if (bitmap == null) return;
     java.io.File directory = getTargetContext().getExternalFilesDir(null);
@@ -144,7 +158,7 @@ public final class FinderSmokeTest extends Instrumentation {
   }
 
   private void assertText(String text) {
-    runOnMainSync(
+    onUi(
         () -> {
           View v = findText(root(), text);
           if (v == null || !v.isShown()) throw new AssertionError("Missing UI text: " + text);

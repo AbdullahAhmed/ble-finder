@@ -225,6 +225,9 @@ public final class MainActivity extends Activity implements BleFinderClient.List
   }
 
   private void buildLocator() {
+    boolean compact =
+        getResources().getConfiguration().screenHeightDp < 700
+            || getResources().getConfiguration().fontScale > 1.25f;
     LinearLayout header = row();
     Button back = button("‹", false);
     back.setTextSize(32);
@@ -254,8 +257,8 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
     status = label("Listening for signal…", 13, MINT);
     status.setGravity(Gravity.CENTER);
-    content.addView(status, margins(-1, -2, 0, 20, 0, 6));
-    TextView heading = label("Follow the signal", 29, INK);
+    content.addView(status, margins(-1, -2, 0, compact ? 10 : 20, 0, 6));
+    TextView heading = label("Follow the signal", compact ? 23 : 29, INK);
     bold(heading);
     heading.setGravity(Gravity.CENTER);
     content.addView(heading);
@@ -264,22 +267,25 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     meter.addView(dial, new FrameLayout.LayoutParams(-1, -1));
     LinearLayout center = column();
     center.setGravity(Gravity.CENTER);
-    TextView caption = label("SIGNAL STRENGTH", 11, MUTED);
+    TextView caption = label("SIGNAL STRENGTH", compact ? 9 : 11, MUTED);
     caption.setLetterSpacing(.1f);
+    caption.setGravity(Gravity.CENTER);
     center.addView(caption);
-    number = label("—", 76, INK);
+    number = label("—", compact ? 56 : 76, INK);
     number.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
     number.setGravity(Gravity.CENTER);
     number.setFontFeatureSettings("tnum");
     center.addView(number, lp(-1, -2));
-    center.addView(label("dBm", 14, MUTED));
-    strength = label("Waiting for a reading", 16, MINT);
+    TextView unit = label("dBm", compact ? 12 : 14, MUTED);
+    unit.setGravity(Gravity.CENTER);
+    center.addView(unit);
+    strength = label("Waiting for a reading", compact ? 14 : 16, MINT);
     bold(strength);
     center.addView(strength, margins(-2, -2, 0, 12, 0, 0));
     center.setPadding(0, 0, 0, dp(10));
     meter.addView(center, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
-    content.addView(meter, margins(-1, dp(275), 0, 8, 0, 0));
-    trend = label("Walk slowly. Pause to compare.", 20, INK);
+    content.addView(meter, margins(-1, dp(compact ? 180 : 275), 0, 8, 0, 0));
+    trend = label("Walk slowly. Pause to compare.", compact ? 17 : 20, INK);
     bold(trend);
     trend.setGravity(Gravity.CENTER);
     content.addView(trend, lp(-1, -2));
@@ -298,7 +304,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     trace.addView(traceHeader);
     chart = new HistoryView();
     trace.addView(chart, margins(-1, dp(42), 0, 6, 0, 0));
-    content.addView(trace, margins(-1, -2, 0, 4, 0, 16));
+    if (!compact) content.addView(trace, margins(-1, -2, 0, 4, 0, 16));
     LinearLayout controls = row();
     soundButton = button("", false);
     hapticButton = button("", false);
@@ -333,10 +339,6 @@ public final class MainActivity extends Activity implements BleFinderClient.List
               .show();
         });
     content.addView(found, margins(-1, dp(58), 0, 0, 0, 6));
-    TextView stop = label("Stop searching", 14, MUTED);
-    stop.setGravity(Gravity.CENTER);
-    stop.setOnClickListener(v -> showPicker());
-    content.addView(stop, lp(-1, dp(48)));
     if (paused) showPaused();
     else updateSignalUi();
   }
