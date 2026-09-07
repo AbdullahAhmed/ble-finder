@@ -39,7 +39,7 @@ public final class FinderSmokeTest extends Instrumentation {
               .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       activity = (MainActivity) startActivitySync(intent);
       waitForIdleSync();
-      assertText("Pick a device. Follow the clicks.");
+      assertText("BLE FINDER");
       BleFinderClient.Device beacon =
           new BleFinderClient.Device("02:00:00:00:00:01", "Test beacon", false);
       beacon.rssi = -75;
@@ -49,6 +49,15 @@ public final class FinderSmokeTest extends Instrumentation {
       SystemClock.sleep(1200);
       waitForIdleSync();
       assertText("Test beacon");
+      runOnMainSync(
+          () -> {
+            View row = (View) findText(root(), "Test beacon").getParent().getParent();
+            android.graphics.Rect visible = new android.graphics.Rect();
+            if (!row.getGlobalVisibleRect(visible)
+                || visible.height()
+                    < 48 * getTargetContext().getResources().getDisplayMetrics().density)
+              throw new AssertionError("Device list has insufficient visible touch area");
+          });
       assertText("Unnamed device");
       screenshot("picker");
       runOnMainSync(() -> ((EditText) findType(root(), EditText.class)).setText("00:00:02"));
@@ -86,7 +95,7 @@ public final class FinderSmokeTest extends Instrumentation {
           () -> activity.onSignal(-80, "Connected", SystemClock.elapsedRealtime() - 10000));
       assertText("—"); // Delayed scan batches cannot revive a stale signal.
       runOnMainSync(() -> activity.onBackPressed());
-      assertText("Pick a device. Follow the clicks.");
+      assertText("BLE FINDER");
       result.putString(
           "stream",
           "\n"

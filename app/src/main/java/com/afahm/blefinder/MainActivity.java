@@ -171,12 +171,14 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     help.setOnClickListener(v -> showHelp());
     header.addView(help, lp(dp(48), dp(48)));
     root.addView(header);
-    TextView title =
-        label(compact ? "Find a device." : "Find your\nmissing thing.", compact ? 28 : 38, INK);
-    bold(title);
-    title.setLineSpacing(0, 1.02f);
-    root.addView(title, margins(-1, -2, 0, compact ? 6 : 16, 0, 8));
-    root.addView(label("Pick a device. Follow the clicks.", 17, MUTED));
+    if (!compact) {
+      TextView title =
+          label(compact ? "Find a device." : "Find your\nmissing thing.", compact ? 28 : 38, INK);
+      bold(title);
+      title.setLineSpacing(0, 1.02f);
+      root.addView(title, margins(-1, -2, 0, compact ? 6 : 16, 0, 8));
+      root.addView(label("Pick a device. Follow the clicks.", 17, MUTED));
+    }
     search = new EditText(this);
     search.setSingleLine(true);
     search.setTextSize(16);
@@ -214,7 +216,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
     TextView footer = label("Bluetooth LE devices only · no account needed", 12, MUTED);
     footer.setGravity(Gravity.CENTER);
-    root.addView(footer, margins(-1, -2, 0, 12, 0, 0));
+    if (!compact) root.addView(footer, margins(-1, -2, 0, 12, 0, 0));
     rows.clear();
     if (recent != null && !devices.containsKey(recent.address)) devices.put(recent.address, recent);
     renderDevices();

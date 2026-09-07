@@ -16,3 +16,13 @@ printf '%s\n' "$output"
 grep -q BLE_FINDER_SMOKE_PASS <<< "$output"
 mkdir -p screenshots
 adb pull /sdcard/Android/data/com.afahm.blefinder/files/. screenshots/
+if [ "$api" -eq 23 ]; then
+  adb shell wm size 640x960
+  adb shell wm density 320
+  adb shell settings put system font_scale 1.3
+  compact=$(adb shell am instrument -w com.afahm.blefinder.test/com.afahm.blefinder.FinderSmokeTest)
+  printf '%s\n' "$compact"
+  grep -q BLE_FINDER_SMOKE_PASS <<< "$compact"
+  mkdir -p screenshots/compact
+  adb pull /sdcard/Android/data/com.afahm.blefinder/files/. screenshots/compact/
+fi
