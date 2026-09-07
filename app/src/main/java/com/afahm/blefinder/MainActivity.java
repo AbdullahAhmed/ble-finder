@@ -225,9 +225,8 @@ public final class MainActivity extends Activity implements BleFinderClient.List
   }
 
   private void buildLocator() {
-    boolean compact =
-        getResources().getConfiguration().screenHeightDp < 700
-            || getResources().getConfiguration().fontScale > 1.25f;
+    boolean compact = getResources().getConfiguration().screenHeightDp < 700;
+    boolean showHistory = !compact && getResources().getConfiguration().fontScale <= 1.25f;
     LinearLayout header = row();
     Button back = button("‹", false);
     back.setTextSize(32);
@@ -267,10 +266,6 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     meter.addView(dial, new FrameLayout.LayoutParams(-1, -1));
     LinearLayout center = column();
     center.setGravity(Gravity.CENTER);
-    TextView caption = label("SIGNAL STRENGTH", compact ? 9 : 11, MUTED);
-    caption.setLetterSpacing(.1f);
-    caption.setGravity(Gravity.CENTER);
-    center.addView(caption);
     number = label("—", compact ? 56 : 76, INK);
     number.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
     number.setGravity(Gravity.CENTER);
@@ -281,10 +276,11 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     center.addView(unit);
     strength = label("Waiting for a reading", compact ? 14 : 16, MINT);
     bold(strength);
-    center.addView(strength, margins(-2, -2, 0, 12, 0, 0));
     center.setPadding(0, 0, 0, dp(10));
     meter.addView(center, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
     content.addView(meter, margins(-1, dp(compact ? 180 : 275), 0, 8, 0, 0));
+    strength.setGravity(Gravity.CENTER);
+    content.addView(strength, margins(-1, -2, 0, 0, 0, 10));
     trend = label("Walk slowly. Pause to compare.", compact ? 17 : 20, INK);
     bold(trend);
     trend.setGravity(Gravity.CENTER);
@@ -304,7 +300,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
     trace.addView(traceHeader);
     chart = new HistoryView();
     trace.addView(chart, margins(-1, dp(42), 0, 6, 0, 0));
-    if (!compact) content.addView(trace, margins(-1, -2, 0, 4, 0, 16));
+    if (showHistory) content.addView(trace, margins(-1, -2, 0, 4, 0, 16));
     LinearLayout controls = row();
     soundButton = button("", false);
     hapticButton = button("", false);
@@ -319,6 +315,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
           haptics = !haptics;
           prefs.edit().putBoolean("haptics", haptics).apply();
           updateToggles();
+          if (haptics) pulsePhone();
         });
     controls.addView(soundButton, new LinearLayout.LayoutParams(0, dp(54), 1));
     controls.addView(new Space(this), lp(dp(10), 1));
@@ -553,7 +550,7 @@ public final class MainActivity extends Activity implements BleFinderClient.List
 
   @Override
   public void onScanState(boolean value) {
-    if (target == null && scanButton != null) scanButton.setText(value ? "Scanning…" : "Refresh");
+    if (target == null && scanButton != null) scanButton.setText("Refresh");
   }
 
   @Override
@@ -652,16 +649,34 @@ public final class MainActivity extends Activity implements BleFinderClient.List
                 && now - lastClick >= SignalMath.beepIntervalMs(smoothed)) {
               lastClick = now;
               if (sound && tone != null) tone.startTone(ToneGenerator.TONE_PROP_BEEP, 22);
-              if (haptics && vibrator != null && vibrator.hasVibrator()) {
-                if (Build.VERSION.SDK_INT >= 26)
-                  vibrator.vibrate(VibrationEffect.createOneShot(20, 80));
-                else vibrator.vibrate(20);
-              }
+              if (haptics) pulsePhone();
             }
           }
           main.postDelayed(this, 100);
         }
       };
+
+  private void pulsePhone() {
+    if (vibrator == null || !vibrator.hasVibrator()) return;
+    // These pulses convey a live signal without looking at the display; they are
+    // accessibility guidance, not touch/keyboard feedback or a notification.
+    if (Build.VERSION.SDK_INT >= 33) {
+      vibrator.vibrate(
+          VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE),
+          new VibrationAttributes.Builder()
+              .setUsage(VibrationAttributes.USAGE_ACCESSIBILITY)
+              .build());
+    } else {
+      AudioAttributes attributes =
+          new AudioAttributes.Builder()
+              .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+              .build();
+      if (Build.VERSION.SDK_INT >= 26)
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE), attributes);
+      else vibrator.vibrate(40, attributes);
+    }
+  }
 
   private void showPaused() {
     status.setText("Search paused after 20 minutes · tap to resume");

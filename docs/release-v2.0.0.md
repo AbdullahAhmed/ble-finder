@@ -5,6 +5,7 @@ Pick a Bluetooth LE device and follow Geiger-style clicks to find it.
 - Generic BLE device picker, search by name or address, and a remembered recent device.
 - Large signal dial, warmer/colder trend, and a 30-second history.
 - Sound and phone vibration toggles, plus a single **Found it** button.
+- Phone pulses use accessibility feedback, so disabling keyboard/touch haptics does not suppress the locator's guidance.
 - Broadcast signal tracking and read-only connected RSSI, with no Zepp key or account.
 - Android 6.0+ support, compact-screen layout, and no Internet permission.
 - Stale signal protection: clicks pause and the live reading clears after three seconds without data.

@@ -19,7 +19,7 @@ If Android asks, allow your browser or file manager to install this downloaded a
 ## A simple interface
 
 - Searchable device picker with live signal readings and stable rows that don’t jump around while you tap.
-- Large signal dial, warmer/colder trend, and a small 30-second signal history.
+- Large signal dial, warmer/colder trend, and a small 30-second signal history on larger displays with standard text size.
 - Independent phone sound and vibration controls.
 - Stale readings stop the clicks and clear the live meter after three seconds.
 - Screen stays awake while the app is visible. Bluetooth work and sound stop when you leave the app.
@@ -46,7 +46,7 @@ Minimum: Android 6.0 / API 23, Bluetooth LE hardware. One universal APK works on
 
 - **Nearby Devices** (Android 12+): scan and read the Bluetooth connection's signal.
 - **Precise Location**: Android's BLE scan permission requirements and beacon visibility. The app intentionally does not declare `neverForLocation`, which can filter out some beacons. No GPS position is requested or stored.
-- **Vibration**: optional pulses on your phone.
+- **Vibration**: optional pulses on your phone, classified as accessibility guidance so they are independent of keyboard/touch haptics. Android's applicable vibration settings still apply.
 
 Everything runs locally. There is **no Internet permission**, analytics, cloud service, or location history. Only the last selected device and sound/vibration preferences are saved. The app does not pair or unpair devices, issue proprietary commands, change firmware, or make the selected accessory vibrate.
 

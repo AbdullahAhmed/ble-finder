@@ -78,6 +78,8 @@ public final class FinderSmokeTest extends Instrumentation {
           });
       assertText("Follow the signal");
       assertText("Sound off");
+      onUi(() -> findText(root(), "Vibration off").performClick());
+      assertText("Vibration on");
       onUi(() -> activity.onSignal(-70, "Broadcast", SystemClock.elapsedRealtime()));
       assertText("-70");
       assertText("●  Live signal");
