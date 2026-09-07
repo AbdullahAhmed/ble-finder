@@ -6,6 +6,13 @@ Originally built to find a lost Amazfit watch whose vibration was too quiet to h
 
 **[Download the Android APK](https://github.com/AbdullahAhmed/ble-finder/releases/latest/download/ble-finder.apk)** · [APK in this repository](downloads/ble-finder.apk) · [Releases](https://github.com/AbdullahAhmed/ble-finder/releases)
 
+<p>
+  <img src="docs/screenshots/picker.png" width="260" alt="BLE Finder device picker" />
+  <img src="docs/screenshots/locator.png" width="260" alt="BLE Finder live signal dial and locating controls" />
+</p>
+
+Compact-layout screenshots from the Android emulator, using simulated devices and signal readings.
+
 ## How to use it
 
 1. Install the APK on a phone running **Android 6.0 or later** with Bluetooth LE.
