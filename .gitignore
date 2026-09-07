@@ -14,6 +14,7 @@ captures/
 .cxx/
 *.aab
 *.apk
+!downloads/*.apk
 output-metadata.json
 
 # IntelliJ
@@ -32,3 +33,4 @@ google-services.json
 
 # Android Profiling
 *.hprof
+archive/

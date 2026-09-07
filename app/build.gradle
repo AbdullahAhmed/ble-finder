@@ -1,0 +1,40 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.afahm.blefinder"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.afahm.blefinder"
+        minSdk 23
+        targetSdk 35
+        versionCode 2
+        versionName "2.0.0"
+        testInstrumentationRunner "com.afahm.blefinder.FinderSmokeTest"
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            // Keeps updates compatible with the original locally signed personal utility.
+            // The signing key stays on the maintainer's machine and is never committed.
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    testImplementation "junit:junit:4.13.2"
+}
